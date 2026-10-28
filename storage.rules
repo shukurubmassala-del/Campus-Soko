@@ -1,0 +1,74 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ==========================================
+    // Helper Functions
+    // ==========================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Limit image upload to max 2MB (2 * 1024 * 1024 bytes)
+    function isUnderMaxSize() {
+      return request.resource.size <= 2 * 1024 * 1024;
+    }
+
+    // Ensure only valid image formats (JPEG, PNG, WebP)
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/jpeg') ||
+             request.resource.contentType.matches('image/png') ||
+             request.resource.contentType.matches('image/webp');
+    }
+
+    // ==========================================
+    // 1. Listing Photos
+    // Path: /listings/{listingId}/{fileName}
+    // ==========================================
+    match /listings/{listingId}/{fileName} {
+      // Anyone can view product photos on the marketplace
+      allow read: if true;
+
+      // Only authenticated users can upload product photos within size & MIME constraints
+      allow write: if isAuthenticated()
+                   && isUnderMaxSize()
+                   && isValidImageType();
+    }
+
+    // ==========================================
+    // 2. User Avatars
+    // Path: /avatars/{userId}/{fileName}
+    // ==========================================
+    match /avatars/{userId}/{fileName} {
+      // Publicly viewable avatars
+      allow read: if true;
+
+      // Only the account owner can change their profile picture
+      allow write: if isOwner(userId)
+                   && isUnderMaxSize()
+                   && isValidImageType();
+    }
+
+    // ==========================================
+    // 3. Student Verification Documents (PDPA Compliance)
+    // Path: /verification_ids/{userId}/{fileName}
+    // ==========================================
+    match /verification_ids/{userId}/{fileName} {
+      // Strictly private: readable only by the student themselves or a verified admin
+      allow read: if isOwner(userId) || (
+        isAuthenticated() && request.auth.token.admin == true
+      );
+
+      // Only the student owner can upload their student ID photo for verification
+      allow write: if isOwner(userId)
+                   && isUnderMaxSize()
+                   && isValidImageType();
+    }
+
+  }
+}

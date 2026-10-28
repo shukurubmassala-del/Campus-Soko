@@ -1,0 +1,153 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // Helper Functions
+    // ==========================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the user matches the requested UID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the user is a platform moderator or admin
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator'] ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+      );
+    }
+
+    // ==========================================
+    // 1. Users Collection
+    // ==========================================
+    match /users/{userId} {
+      // Any authenticated student can view basic public profile info
+      allow read: if isAuthenticated();
+
+      // Only the user themselves can create their profile upon signup (prevent role elevation)
+      allow create: if isOwner(userId)
+                    && (!('role' in request.resource.data) || request.resource.data.role == 'student')
+                    && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false);
+
+      // Only account owner can edit profile (cannot elevate role, isAdmin, or verification status)
+      // Admins have full moderation power to verify, promote, or ban accounts
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isAdmin', 'isVerified', 'isBanned']))
+                    || isAdmin();
+
+      // Accounts can only be deleted by the owner or an admin
+      allow delete: if isOwner(userId) || isAdmin();
+
+      // Subcollection: Favorites / Wishlist
+      match /favorites/{listingId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ==========================================
+    // 2. Universities & Categories (Public Static)
+    // ==========================================
+    match /universities/{universityId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 3. Listings Collection
+    // ==========================================
+    match /listings/{listingId} {
+      // Anyone can browse active listings
+      allow read: if true;
+
+      // Authenticated students can post listings under their own UID
+      allow create: if isAuthenticated()
+                    && request.resource.data.sellerId == request.auth.uid
+                    && request.resource.data.price is int
+                    && request.resource.data.price > 0
+                    && request.resource.data.status in ['active', 'reserved', 'sold'];
+
+      // Only the seller can update their listing, or an admin can moderate/delist it
+      allow update: if (isAuthenticated() && resource.data.sellerId == request.auth.uid) || isAdmin();
+
+      // Only the seller or an admin can delete a listing
+      allow delete: if (isAuthenticated() && resource.data.sellerId == request.auth.uid) || isAdmin();
+    }
+
+    // ==========================================
+    // 4. Chats & Messages (Private Communication)
+    // ==========================================
+    match /chats/{chatId} {
+      // Only the buyer or seller can view or list their conversation
+      allow read: if isAuthenticated() && (
+        request.auth.uid in resource.data.participants || isAdmin()
+      );
+
+      // Authenticated users can create a chat if they are listed in participants
+      allow create: if isAuthenticated()
+                    && request.auth.uid in request.resource.data.participants
+                    && request.resource.data.buyerId == request.auth.uid;
+
+      // Only chat participants can update conversation metadata (e.g. unread count, last message)
+      allow update: if isAuthenticated() && request.auth.uid in resource.data.participants;
+
+      // Messages Subcollection
+      match /messages/{messageId} {
+        // Read only if you are a participant of the parent chat
+        allow read: if isAuthenticated() && (
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants || isAdmin()
+        );
+
+        // Create message if you are a chat participant and setting yourself as sender
+        allow create: if isAuthenticated()
+                      && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+                      && request.resource.data.senderId == request.auth.uid;
+
+        // Messages are immutable once sent (cannot be altered)
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ==========================================
+    // 5. Reviews Collection
+    // ==========================================
+    match /reviews/{reviewId} {
+      // Anyone can read reviews for student transparency
+      allow read: if true;
+
+      // Authenticated students can write reviews (cannot review themselves)
+      allow create: if isAuthenticated()
+                    && request.resource.data.reviewerId == request.auth.uid
+                    && request.resource.data.targetUserId != request.auth.uid
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5;
+
+      // Reviews cannot be edited post-facto; only deleted by admins for moderation
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ==========================================
+    // 6. Reports Collection (Moderation)
+    // ==========================================
+    match /reports/{reportId} {
+      // Any authenticated user can submit a report against fraud or illegal items
+      allow create: if isAuthenticated() && request.resource.data.reporterId == request.auth.uid;
+
+      // Only admins and moderators can read, resolve, or dismiss reports
+      allow read, update, delete: if isAdmin();
+    }
+
+  }
+}

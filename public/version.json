@@ -1,0 +1,63 @@
+{
+  "version": "1.3.4",
+  "buildId": "build-20261025-amendment-4",
+  "releaseDate": "2026-10-25T11:45:00Z",
+  "amendment": {
+    "id": "amend_20261025_04",
+    "version": "1.3.4",
+    "buildId": "build-20261025-amendment-4",
+    "titleSw": "Upatanishi wa Menyu ya Juu & Uteuzi wa Wajibu wa Akaunti",
+    "titleEn": "Top App Bar Layout & Account Role Routing Amendment",
+    "descriptionSw": "Vitufe vyote vya menyu sasa vinakaa kwenye safu moja bila kufichika kwenye simu ndogo na kubwa. Wanunuzi na Wauzaji sasa wanachagua wajibu wao wanapojiunga na kuelekezwa kwenye miingiliano yao husika.",
+    "descriptionEn": "All app bar icons now fit seamlessly on the same row across all mobile viewports. Role declaration upon sign-up routes buyers and sellers to their tailored interface display.",
+    "highlightsSw": [
+      "Vitufe vyote vya App Bar vinakaa kwenye safu moja kwenye simu na kompyuta",
+      "Uteuzi wa Mnunuzi (Buyer) au Muuzaji (Seller) wakati wa kujiandikisha/kuingia",
+      "Kurasa za bidhaa na wateja zimewekewa mipaka ili maandishi yasipitishe ukingo wa ukurasa",
+      "Uwezo wa kupata taarifa za maboresho ya hivi karibuni na kupakia upya kivinjari"
+    ],
+    "highlightsEn": [
+      "All app bar icons fit on one row across all mobile and desktop screens",
+      "Role declaration for Buyers and Sellers with direct interface routing",
+      "Text boundary containment on seller management and inquiries",
+      "Live feature amendment notification with one-click browser refresh"
+    ],
+    "releaseDate": "2026-10-25T11:45:00Z",
+    "isImportant": true
+  },
+  "amendmentHistory": [
+    {
+      "id": "amend_20261025_04",
+      "version": "1.3.4",
+      "buildId": "build-20261025-amendment-4",
+      "titleSw": "Upatanishi wa Menyu ya Juu & Uteuzi wa Wajibu wa Akaunti",
+      "titleEn": "Top App Bar Layout & Account Role Routing Amendment",
+      "descriptionSw": "Vitufe vyote vya menyu ya juu vinakaa kwenye ukurasa mmoja bila kufichika. Uteuzi wa mnunuzi/muuzaji unafanya kazi papo hapo.",
+      "descriptionEn": "Top app bar icons all visible and fitted on same row. Direct buyer/seller declared interfaces.",
+      "releaseDate": "2026-10-25T11:45:00Z",
+      "isImportant": true
+    },
+    {
+      "id": "amend_20261025_03",
+      "version": "1.3.3",
+      "buildId": "build-20261025-amendment-3",
+      "titleSw": "Maboresho ya Ufungashaji wa Maandishi kwenye Dashibodi ya Wauzaji",
+      "titleEn": "Seller Studio Text Overflow Containment",
+      "descriptionSw": "Kurekebisha mpangilio ili maelezo na jumbe zisipite pembezoni mwa ukurasa.",
+      "descriptionEn": "Fixed text boundaries in seller inventory and incoming buyer inquiries.",
+      "releaseDate": "2026-10-25T10:30:00Z",
+      "isImportant": false
+    },
+    {
+      "id": "amend_20261025_02",
+      "version": "1.3.0",
+      "buildId": "build-20261025-amendment-2",
+      "titleSw": "Usaidizi wa Arifa za Simu (FCM) & Sera ya Bidhaa Haramu",
+      "titleEn": "Push Notifications (FCM) & Campus Safety Policy",
+      "descriptionSw": "Ujumuishaji wa taarifa za papo hapo na udhibiti wa bidhaa zilizopigwa marufuku.",
+      "descriptionEn": "Real-time push alerts and automated prohibited keyword moderation.",
+      "releaseDate": "2026-10-24T18:00:00Z",
+      "isImportant": true
+    }
+  ]
+}
